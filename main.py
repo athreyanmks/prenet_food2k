@@ -24,7 +24,7 @@ def parse_option():
     parser.add_argument("--test_path", type=str, default="E:/datasets/food101/meta_data/test_full.txt",
                         help='path to testing list')
     parser.add_argument('--weight_path', default="E:/Pretrained_model/food2k_resnet50_0.0001.pth", help='path to the pretrained model')
-    parser.add_argument('--use_checkpoint', action='store_true', default=True,
+    parser.add_argument('--use_checkpoint', action='store_true', default=False,
                         help="whether to use gradient checkpointing to save memory")
     parser.add_argument('--checkpoint', type=str, default="E:/Pretrained_model/model.pth",
                         help="the path to checkpoint")
@@ -34,7 +34,7 @@ def parse_option():
                         help="The initial learning rate for SGD.")
     parser.add_argument("--epoch", default=200, type=int,
                         help="The number of epochs.")
-    parser.add_argument("--test", action='store_true', default=True,
+    parser.add_argument("--test", action='store_true', default=False,
                         help="Testing model.")
     args, unparsed = parser.parse_known_args()
     return args
@@ -174,21 +174,21 @@ def main():
         NUM_CATEGORIES = 2000
 
 
-    net = load_model('resnet50',pretrain=False,require_grad=True,num_class=NUM_CATEGORIES)
+    net = load_model('resnet50', pretrain=False,require_grad=True,num_class=NUM_CATEGORIES)
     net.fc = nn.Linear(2048, 2000)
-    state_dict = {}
-    pretrained = torch.load(args.weight_path)
+    # state_dict = {}
+    # pretrained = torch.load(args.weight_path)
 
-    for k, v in net.state_dict().items():
-        if k[9:] in pretrained.keys() and "fc" not in k:
-            state_dict[k] = pretrained[k[9:]]
-        elif "xx" in k and re.sub(r'xx[0-9]\.?',".", k[9:]) in pretrained.keys():
-            state_dict[k] = pretrained[re.sub(r'xx[0-9]\.?',".", k[9:])]
-        else:
-            state_dict[k] = v
-            print(k)
+    # for k, v in net.state_dict().items():
+    #     if k[9:] in pretrained.keys() and "fc" not in k:
+    #         state_dict[k] = pretrained[k[9:]]
+    #     elif "xx" in k and re.sub(r'xx[0-9]\.?',".", k[9:]) in pretrained.keys():
+    #         state_dict[k] = pretrained[re.sub(r'xx[0-9]\.?',".", k[9:])]
+    #     else:
+    #         state_dict[k] = v
+    #         print(k)
 
-    net.load_state_dict(state_dict)
+    # net.load_state_dict(state_dict)
     net.fc = nn.Linear(2048, NUM_CATEGORIES)
 
     ignored_params = list(map(id, net.features.parameters()))
@@ -221,12 +221,13 @@ def main():
         print('load the checkpoint')
 
     if args.test:
+        print("Testing")
         val_acc, val5_acc, val_acc_com, val5_acc_com, val_loss = test(net, nn.CrossEntropyLoss(), args.batchsize, test_loader, True)
         print('Accuracy of the network on the val images: top1 = %.5f, top5 = %.5f, top1_combined = %.5f, top5_combined = %.5f, test_loss = %.6f\n' % (
                 val_acc, val5_acc, val_acc_com, val5_acc_com, val_loss))
         return
 
-
+    print("Training")
     train(nb_epoch=args.epoch,             # number of epoch
              trainloader=train_loader,
              testloader=test_loader,
