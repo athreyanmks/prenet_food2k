@@ -108,16 +108,16 @@ class PRENet(nn.Module):
         xl3 = self.conv_block3(xf5)
 
         xk1 = self.Avgmax(xl1)
-        xk1 = xk1.view(xk1.size(0), -1)
-        xc1 = self.classifier1(xk1)
+        xk1_v = xk1.view(xk1.size(0), -1)
+        xc1 = self.classifier1(xk1_v)
 
         xk2 = self.Avgmax(xl2)
-        xk2 = xk2.view(xk2.size(0), -1)
-        xc2 = self.classifier2(xk2)
+        xk2_v = xk2.view(xk2.size(0), -1)
+        xc2 = self.classifier2(xk2_v)
 
         xk3 = self.Avgmax(xl3)
-        xk3 = xk3.view(xk3.size(0), -1)
-        xc3 = self.classifier3(xk3)
+        xk3_v = xk3.view(xk3.size(0), -1)
+        xc3 = self.classifier3(xk3_v)
 
 
         if label:
@@ -143,30 +143,30 @@ class PRENet(nn.Module):
             xr3 = self.drop_block(self.sconv3(xs3))
 
             xm1 = self.Avgmax(xr1)
-            xm1 = xm1.view(xm1.size(0), -1)
+            xm1_v = xm1.view(xm1.size(0), -1)
             #print(np.argmax(F.softmax(xm1, dim=1).cpu().detach().numpy(),axis=1))
             #input()
 
             xm2 = self.Avgmax(xr2)
-            xm2 = xm2.view(xm2.size(0), -1)
+            xm2_v = xm2.view(xm2.size(0), -1)
             #print(np.argmax(F.softmax(xm2, dim=1).cpu().detach().numpy(),axis=1))
             #input()
 
             xm3 = self.Avgmax(xr3)
-            xm3 = xm3.view(xm3.size(0), -1)
+            xm3_v = xm3.view(xm3.size(0), -1)
             #print(np.argmax(F.softmax(xm3, dim=1).cpu().detach().numpy(),axis=1))
             #input()
 
-            x_concat = torch.cat((xm1, xm2, xm3, xn), dim=1)
+            x_concat = torch.cat((xm1_v, xm2_v, xm3_v, xn), dim=1)
             x_concat = self.classifier_concat(x_concat)
         else:
-            x_concat = torch.cat((xk1, xk2, xk3, xn), dim=1)
+            x_concat = torch.cat((xk1_v, xk2_v, xk3_v, xn), dim=1)
             x_concat = self.classifier_concat(x_concat)
 
         #get origal feature vector
 
 
-        return xk1, xk2, xk3, x_concat, xc1, xc2, xc3
+        return xk1_v, xk2_v, xk3_v, x_concat, xc1, xc2, xc3
     
     
 class BasicConv(nn.Module):
